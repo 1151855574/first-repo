@@ -1,0 +1,91 @@
+ctrl+alt+t:新建一个终端
+
+Cmake是一个项目构建工具，并且是跨平台的
+
+Cmake宏的自定义:
+在执行g++命令的时候，指定一个参数-DDEBUG。这个就相当于在源文件当中定义一个宏
+在Cmake中也可以做类似的事情add_definitions(-D宏的名称 )
+一般宏都是大写的
+通过宏的方式可以控制项目中，某些代码到底是可用还是不可以使用
+
+如果一个项目很大，或者项目中有很多的源码目录，在通过CMake管理项目的时候如果只使用一个CMakelists.txt那么这个文件相对会比较复杂
+有一种化繁为简的方式就是给源码目录加一个CMakeLists.txt文件(头文件目录不需要)，这样每个CMakeLists.txt文件都不会太复杂，而且更加的灵活，更加容易维护
+
+在每个CMakeLists.txt中都可以定义一些变量，在父节点中定义了一些变量之后，父节点里面的变量，可以被子节点使用。（子节点继承了父节点里面的变量）
+
+aux_source_directory
+宏不需要加${}
+
+在跟节点当中定义了一系列变量，然后在子节点当中进行使用
+
+github创建完成远程仓库之后，github会给提示，如何将本地仓库和远程仓库进行关联
+	第一种没有本地仓库
+	第二种有本地仓库，如何将其放在远程仓库里面
+		
+		
+	
+	
+HTTPS和SSH的区别
+	HTTPS将本地代码PUSH到远程仓库的时候，需要验证用户名和密码
+	SSH将本地代码PUSH到远程仓库的时候，不需要验证用户名和密码，但是需要在github上添加ssh公钥配置
+	
+git ls-files:查看仓库状态
+
+
+对图像进行二值化、阈值化:
+
+	固定阈值二值化:这样可以清晰地区分出图像中的目标物体和背景。
+	void threshold(InputArray src, OutputArray dst, double thresh, double maxval, int type)
+		src：输入图像，必须是单通道的灰度图像。
+		dst：输出图像，二值化后的图像，与输入图像大小和类型相同。
+		thresh：阈值，用于判断像素应该被赋予什么值。
+		maxval：当像素值高于（或低于，具体取决于 type）阈值时，所赋予的值。
+		type：二值化操作类型，即二值化时像素值与阈值的比较方式。可选值如下：
+			cv::THRESH_BINARY：大于阈值的像素设置为 maxval，小于等于阈值的像素设置为 0。
+			cv::THRESH_BINARY_INV：大于阈值的像素设置为 0，小于等于阈值的像素设置为 maxval。
+			cv::THRESH_TRUNC：大于阈值的像素设置为阈值，小于等于阈值的像素保持不变。
+			cv::THRESH_TOZERO：大于阈值的像素保持不变，小于等于阈值的像素设置为 0。
+			cv::THRESH_TOZERO_INV：大于阈值的像素设置为 0，小于等于阈值的像素保持不变。
+			cv::THRESH_OTSU:自适应地选择最佳的阈值，而无需手动指定。
+			cv::THRESH_TRIANGLE:自适应地选择最佳的阈值，而无需手动指定。
+		指定 cv::THRESH_OTSU 或 cv::THRESH_TRIANGLE 参数时，thresh 参数的具体值将被忽略，因为这两个参数会自动计算最佳阈值。
+			这个最佳阈值是基于图像的直方图和特定的算法计算得出的，并且在一定程度上可以看作是一个唯一不变的值。
+		
+	自适应阈值二值化：它可以根据图像不同区域的灰度特性，对图像进行局部的二值化处理。函数根据每个像素点周围的邻域块计算不同的阈值。
+		adaptiveThreshold(InputArray src,OutputArray dst,double maxValue,int adaptiveMethod,int thresholdType,int blockSize,double C)
+			src 必须是单通道（灰度）图像，dst 相应地也会是单通道图像。 
+			maxValue 是输出图像中高于阈值的像素点所赋予的值，一般是 255。
+			adaptiveMethod 参数指定了自适应阈值算法，可以选择 ADAPTIVE_THRESH_MEAN_C 或 ADAPTIVE_THRESH_GAUSSIAN_C。前者是根据邻域块的平均值计算阈值，后者是根据邻域块的加权平均值计算阈值。
+			thresholdType 参数指定了二值化类型，可以选择 THRESH_BINARY 或 THRESH_BINARY_INV 分别表示大于阈值的部分为白色或黑色。
+			blockSize 参数用于指定邻域大小，即用于计算局部阈值的邻域大小，一般取奇数。
+			C 参数是从平均或加权平均中减去的常数，一般为正数，用来调整阈值。
+
+		邻域大小实际上是影响阈值计算的关键因素之一。
+		较大的邻域块能够考虑更多的像素点，使得阈值更加平滑和稳定；而较小的邻域块则能够更加敏感地捕捉到细节，但同时也更容易受到噪声的干扰。
+		因此，在实际应用中需要根据具体情况选择合适的邻域大小。
+
+LUT查找表：将0-255之间任意去划分 分层。基本上相当于一种线性的映射，首先规定映射的规则，然后将所有的像素根据规则进行映射。可以实现多值化
+	void LUT(InputArray src, InputArray lut, OutputArray dst);
+		src：输入图像，可以是单通道或多通道图像。其数据类型只能CV_8U,也就是只能0-255
+		lut：查找表，是一个一维数组，同样可以是单通道的也可以是多通道的。用于指定每个输入像素值对应的输出值。该数组的长度必须为256，表示所有可能的输入像素值。
+		dst：输出图像，与输入图像有相同的尺寸和通道数。数据类型不一定与src相同，但是与lut相同
+		
+如何对图像进行翻转、图像尺寸进行改变、将两张或者多张图像进行拼接
+
+	图像插值原理：如何根据已有像素去推测未知像素的像素值是多少
+		最邻近法：
+		线性插值法
+		双线性插值法：应用了两次线性插值原理的基础上得到需要进行估计的像素值的一个算法
+	
+	图像缩放、旋转、拼接
+		void resize( InputArray src, OutputArray dst,Size dsize, double fx = 0, double fy = 0,int interpolation = INTER_LINEAR );可以将输入图像调整为指定大小或按比例进行缩放
+			src：输入图像，可以是单通道或多通道图像。
+			dst：输出图像，用于存储缩放后的结果。图像数据类型与src相同
+			dsize：目标图像的尺寸，可以通过指定像素数目确定图像大小。
+			fx：水平方向的缩放比例因子，如果为0，则根据 dsize.width 来计算。
+			fy：垂直方向的缩放比例因子，如果为0，则根据 dsize.height 来计算。
+			interpolation：插值方法的选择，可以是以下值之一：
+				INTER_NEAREST：最近邻插值。
+				INTER_LINEAR：双线性插值（默认值）。
+				INTER_CUBIC：双立方插值。
+				INTER_LANCZOS4：Lanczos 插值。
